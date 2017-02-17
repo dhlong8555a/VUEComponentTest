@@ -1,0 +1,50 @@
+/* Global color define */
+
+$primary-color: #3c8dbc;
+$success-color: #5cb85c;
+$info-color: #5bc0de;
+$warn-color: #f0ad4e; 
+$danger-color: #d9534f;
+$gray-color: gray;
+
+/* === new var ==== */
+// background colors
+$bg-white: white;
+$bg-black: black;
+$bg-dark: #222d32;
+$bg-light-gray: rgb(245, 245, 245);
+$bg-primary: $primary-color;
+
+// foreground colors
+$fg-white: white;
+$fg-black: black;
+$fg-light-gray: #b8c7ce;
+
+// border colors
+$border-light-gray: #ccc;
+$border-primary: $primary-color;
+
+// other colors
+$focus-light-blue: rgb(77, 144 ,254);
+
+
+/* old var */
+$gray: $gray-color;
+$common-bg: $bg-white;
+$common-border-color: $border-light-gray;
+$common-gray-bg: $bg-light-gray;
+$common-focus-color: $focus-light-blue;
+$font-icon-color: #666;
+$text-primary: $primary-color;
+$text-danger: $danger-color;
+$text-warn: $warn-color;
+$text-gray: $gray;
+
+// from base colors
+$border-color: $common-border-color;
+$heghtlight-bg: $primary-color;
+$heghtlight-color: $primary-color;
+$stg-operate-color: #666;
+
+
+

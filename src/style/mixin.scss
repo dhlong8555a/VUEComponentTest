@@ -1,0 +1,43 @@
+@import "./colors.scss";
+
+@mixin clearfix() {
+    &:before,
+    &:after {
+        content: "";
+        display: table;
+    }
+    &:after {
+        clear: both;
+    }
+}
+
+@mixin cross-prefix($property, $value) {    
+  -webkit-#{$property}: $value;  
+     -moz-#{$property}: $value;    
+      -ms-#{$property}: $value;      
+             $property: $value;
+}
+
+@mixin ellipsis() {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+@mixin input-focus-style() {
+    outline: none;
+    &:focus { border-color: $focus-light-blue; }
+}
+
+@mixin turn-off-number-input-spinners() {
+    &[type=number]::-webkit-inner-spin-button, 
+    &[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+    }
+}
+
+@mixin disable-text-select() {
+    @include cross-prefix(user-select, none);
+}
+

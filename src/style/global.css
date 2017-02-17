@@ -1,0 +1,14 @@
+
+/* global style */
+
+@import "../../node_modules/bootstrap-css-only/css/bootstrap.min.css";
+@import "../../node_modules/font-awesome/css/font-awesome.css";
+
+/* custom style */
+body, #app {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
