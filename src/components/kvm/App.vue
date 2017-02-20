@@ -5,7 +5,7 @@
         <h3 id="title" slot="header">{{title}}</h3>
 
         <div id="bodyDiv" slot="body">
-          <canvas id="kvmCanvas" @dblclick="KVMCanvasHover" ref="kvmCanvas"></canvas>
+          <canvas id="kvmCanvas" ref="kvmCanvas"></canvas>
         </div>
         
         <div id="footerDiv" slot="footer">
@@ -25,8 +25,7 @@
 
 <script>
 import modal from './modal.vue'
-import "./core/input/*.js"
-import "./core/*.js"
+import RFB from './core/rfb.js'
 
 
 export default {
@@ -34,6 +33,7 @@ export default {
   components: { modal},
   data() {
     return { 
+      desktopName: "",
       showModal: false,
       isShowFlag: false,
       items: ['Win+D', "Win+L", "Alt+Tab", "Ctrl+Alt+Del"],
@@ -54,7 +54,78 @@ export default {
   methods: {
     handleCommand(command){
       console.log('click on item ' + command);
-      this.$refs.kvmCanvas.id = "kvmCanvasMax";
+      //this.$refs.kvmCanvas.id = "kvmCanvasMax";
+      //@dblclick="KVMCanvasHover" 
+      
+    },
+    KVMNotification(rfb, msg, level, options) {
+      console.log("Notification:"+msg+level);
+    },
+    KVMUpdateState(rfb, state, oldstate) {
+      switch (state) {
+      case 'connecting':
+          console.log("Connecting");
+          break;
+      case 'connected':
+          if (rfb && rfb.get_encrypt()) {
+              console.log("Connected (encrypted) to " + this.desktopName);
+          } else {
+              console.log("Connected (unencrypted) to " + this.desktopName);
+          }
+          let display = rfb.get_display();
+          display.autoscale(300, 150, true);
+          break;
+      case 'disconnecting':
+          console.log("Disconnecting");
+          break;
+      case 'disconnected':
+          console.log("Disconnected");
+          break;
+      default:
+          console.log(state);
+          break;
+      }
+    },
+    KVMDisconnected(rfb, reason) {
+      if (typeof(reason) !== 'undefined') {
+        console.log("Disconnected:"+reason);
+      }
+    },
+    KVMUIresize(rfb) {
+        //rfb.requestDesktopSize(300, 150);
+    },
+    KVMFBUComplete(rfb, fbu) {
+        this.KVMUIresize(rfb);
+        rfb.set_onFBUComplete(function() { });
+    },
+    KVMUpdateDesktopName(rfb, name) {
+            this.desktopName = name;
+    },
+    KVMConnect(){
+      var rfb;
+      try {
+      rfb = new RFB({
+        'target': this.$refs.kvmCanvas,
+        'encrypt': false,
+        'repeaterID': '',
+        'true_color': true,
+        'local_cursor': true,
+        'shared':true,
+        'view_only': false,
+        'onNotification':  this.KVMNotification,
+        'onUpdateState':  this.KVMUpdateState,
+        'onDisconnected': this.KVMDisconnected,
+        'onFBUComplete': this.KVMFBUComplete,
+        'onDesktopName': this.KVMUpdateDesktopName
+      });
+      } catch (error) {
+        console.log('Unable to create RFB client -- ' + error);
+        return; 
+      }
+
+      console.log("connecting");
+      rfb.connect("172.21.84.66", 6081, "111", "websockify");
+      console.log("connected");
     },
     KVMPrompt(msg){
       if(this.$refs.kvmCanvas){
@@ -65,36 +136,14 @@ export default {
         ctx.fillStyle= "#5bc0de";
         ctx.fillText(msg, kvmCanvas.width/2, kvmCanvas.height/2);
 
-        var rfb;
-        try {
-                rfb = new RFB({'target':       document.getElementById('noVNC_canvas'),
-                               'encrypt':      WebUtil.getConfigVar('encrypt',
-                                        (window.location.protocol === "https:")),
-                               'repeaterID':   WebUtil.getConfigVar('repeaterID', ''),
-                               'true_color':   WebUtil.getConfigVar('true_color', true),
-                               'local_cursor': WebUtil.getConfigVar('cursor', true),
-                               'shared':       WebUtil.getConfigVar('shared', true),
-                               'view_only':    WebUtil.getConfigVar('view_only', false),
-                               'onNotification':  notification,
-                               'onUpdateState':  updateState,
-                               'onDisconnected': disconnected,
-                               'onXvpInit':    xvpInit,
-                               'onPasswordRequired':  passwordRequired,
-                               'onFBUComplete': FBUComplete,
-                               'onDesktopName': updateDesktopName});
-            } catch (exc) {
-                status('Unable to create RFB client -- ' + exc, 'error');
-                return; // don't continue trying to connect
-            }
-
-            rfb.connect(host, port, password, path);
+         this.KVMConnect();
       }
-    },
+    }/*,
     KVMCanvasHover(){
       let kvmCanvas = this.$refs.kvmCanvas;
       if(kvmCanvas.id == "kvmCanvas") kvmCanvas.id = "kvmCanvasMax";
       else kvmCanvas.id = "kvmCanvas";
-    }
+    }*/
   },
   watch:{
     showModal:function(val, oldVal){
@@ -146,9 +195,10 @@ export default {
       }
 
       #bodyDiv{
-
         #kvmCanvas{
-          width: 100%;
+          //width: 100%;
+          width:300px;
+          height:150px;
           vertical-align: middle;
           background: $bg-black;
         }

@@ -10,21 +10,20 @@
  * (c) 2012 Michael Tinglof, Joe Balaz, Les Piech (Mercuri.ca)
  */
 
-/* [module]
- * import Util from "./util";
- * import Display from "./display";
- * import { Keyboard, Mouse } from "./input/devices"
- * import Websock from "./websock"
- * import Base64 from "./base64";
- * import DES from "./des";
- * import KeyTable from "./input/keysym";
- * import XtScancode from "./input/xtscancodes";
- * import Inflator from "./inflator.mod";
- */
+import Util from "./util";
+import Display from "./display";
+import { Keyboard, Mouse } from "./input/devices"
+import Websock from "./websock"
+import Base64 from "./base64";
+import DES from "./des";
+import KeyTable from "./input/keysym";
+import XtScancode from "./input/xtscancodes";
+import Inflator from "./inflator.mod";
+
 /*jslint white: false, browser: true */
 /*global window, Util, Display, Keyboard, Mouse, Websock, Websock_native, Base64, DES, KeyTable, Inflator, XtScancode */
 
-/* [module] export default */ function RFB(defaults) {
+export default function RFB(defaults) {
     "use strict";
     if (!defaults) {
         defaults = {};
