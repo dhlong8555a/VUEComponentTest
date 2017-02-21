@@ -304,7 +304,9 @@ export default function Display(defaults) {
                 this.resize(this._logo.width, this._logo.height);
                 this.imageRect(0, 0, this._logo.type, this._logo.data);
             } else {
-                this.resize(240, 20);
+                //this.resize(240, 20);
+                //dhl mdf 2017-2-21
+                this.resize(this._target.width, this._target.height);
                 this._drawCtx.clearRect(0, 0, this._fb_width, this._fb_height);
             }
             this.flip();

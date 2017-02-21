@@ -36,6 +36,8 @@ export default {
       desktopName: "",
       showModal: false,
       isShowFlag: false,
+      dWidth: 0,
+      dHeight: 0,
       items: ['Win+D', "Win+L", "Alt+Tab", "Ctrl+Alt+Del"],
     }
   },
@@ -72,8 +74,6 @@ export default {
           } else {
               console.log("Connected (unencrypted) to " + this.desktopName);
           }
-          let display = rfb.get_display();
-          display.autoscale(300, 150, true);
           break;
       case 'disconnecting':
           console.log("Disconnecting");
@@ -93,13 +93,26 @@ export default {
     },
     KVMUIresize(rfb) {
         //rfb.requestDesktopSize(300, 150);
+        let tmpW = this.$refs.kvmCanvas.parentNode.clientWidth;
+        console.log(tmpW);
+        rfb.get_display().autoscale(this.dWidth, this.dHeight, true);
     },
     KVMFBUComplete(rfb, fbu) {
-        this.KVMUIresize(rfb);
-        rfb.set_onFBUComplete(function() { });
+      //this.KVMUIresize(rfb);
+      console.log("FBUComplete");
+    },
+    KVMFBUReceive(rfb, fbu) {
+      //this.KVMUIresize(rfb);
+      console.log("FBUReceive");
+      //rfb.set_onFBUComplete(function() { });
+    },
+    KVMFBResize(rfb, width, height) {
+      this.KVMUIresize(rfb);
+      console.log("FBResize:"+width+height);
+      
     },
     KVMUpdateDesktopName(rfb, name) {
-            this.desktopName = name;
+      this.desktopName = name;
     },
     KVMConnect(){
       var rfb;
@@ -115,7 +128,9 @@ export default {
         'onNotification':  this.KVMNotification,
         'onUpdateState':  this.KVMUpdateState,
         'onDisconnected': this.KVMDisconnected,
+        'onFBUReceive': this.KVMFBUReceive,
         'onFBUComplete': this.KVMFBUComplete,
+        'onFBResize': this.KVMFBResize,
         'onDesktopName': this.KVMUpdateDesktopName
       });
       } catch (error) {
@@ -123,9 +138,10 @@ export default {
         return; 
       }
 
-      console.log("connecting");
+      //let display = rfb.get_display();
+      //display.set_target(this.$refs.kvmCanvas);
+      //display.autoscale(this.$refs.kvmCanvas.width, this.$refs.kvmCanvas.height, true);
       rfb.connect("172.21.84.66", 6081, "111", "websockify");
-      console.log("connected");
     },
     KVMPrompt(msg){
       if(this.$refs.kvmCanvas){
@@ -136,7 +152,7 @@ export default {
         ctx.fillStyle= "#5bc0de";
         ctx.fillText(msg, kvmCanvas.width/2, kvmCanvas.height/2);
 
-         this.KVMConnect();
+        this.KVMConnect();
       }
     }/*,
     KVMCanvasHover(){
@@ -155,6 +171,8 @@ export default {
   updated: function(){
     if(this.isShowFlag){
       let msg = "KVM Server startup...";
+      this.dHeight = this.$refs.kvmCanvas.clientHeight;
+      this.dWidth = this.$refs.kvmCanvas.clientWidth;
       this.KVMPrompt(msg);
       this.isShowFlag = false;
     }
@@ -196,9 +214,9 @@ export default {
 
       #bodyDiv{
         #kvmCanvas{
-          //width: 100%;
-          width:300px;
-          height:150px;
+          width:100%;
+          //width:300px;
+          //height:150px;
           vertical-align: middle;
           background: $bg-black;
         }
