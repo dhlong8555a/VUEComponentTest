@@ -2,11 +2,28 @@
     <modal id="modal">
       <h3 id="title" slot="header">{{title}}</h3>
 
-      <div id="bodyDiv" slot="body">
-        <canvas id="kvmCanvas" ref="kvmCanvas"></canvas>
+      <div id="bodyDiv" slot="body" ref="bodyDiv">
+        <div id="canvasDiv">
+          <canvas id="kvmCanvas" ref="kvmCanvas"></canvas>
+        </div>
+        <div id="controlDiv">
+          <el-dropdown id="hotkeyBtn" v-if="kvmConnected" @command="handleCommand">
+            <el-button type="primary">
+              HotKey<i class="el-icon-caret-bottom el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item divided v-for="item in items" :command="item">{{item}}</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+          <el-button id="fullscreenBtn" slot="footer" type="primary" v-if="kvmConnected" @click="KVMCanvasExpand" >
+            <i class="fa fa-expand"  aria-hidden="true"></i>
+          </el-button>
+          <el-button id="closeBtn" slot="footer" type="primary" @click="KVMClose">close</button>
+        </div>
       </div>
       
-      <div id="footerDiv" slot="footer">
+      <div id="footerDiv" slot="footer"></div>
+      <!--<div id="footerDiv" slot="footer">
         <el-dropdown id="hotkeyBtn" v-if="kvmConnected" @command="handleCommand">
           <el-button type="primary">
             HotKey<i class="el-icon-caret-bottom el-icon--right"></i>
@@ -19,7 +36,7 @@
           <i class="fa fa-expand"  aria-hidden="true"></i>
         </el-button>
         <el-button id="closeBtn" slot="footer" type="primary" @click="KVMClose">close</button>
-      </div>
+      </div>-->
     </modal>
 </template>
 
@@ -205,21 +222,29 @@ export default {
       }
     },
     KVMCanvasExpand(){
-      let kvmCanvas = this.$refs.kvmCanvas;
+      let bodyDiv = this.$refs.bodyDiv;
+      if(bodyDiv.id != "bodyDivMax"){
+        bodyDiv.id = "bodyDivMax";
+      }
+      /*let kvmCanvas = this.$refs.kvmCanvas;
       if(kvmCanvas.id != "kvmCanvasMax"){
         kvmCanvas.id = "kvmCanvasMax";
         window.addEventListener('keyup', this.ESCFun);
-      }
+      }*/
       //kvmCanvas.style.width = window.innerWidth+'px';
       //kvmCanvas.style.height = window.innerHeight+'px';
       //this.rfb.get_display().autoscale(window.innerWidth, window.innerHeight, true);
     },
     KVMCanvasCompress(){
-      let kvmCanvas = this.$refs.kvmCanvas;
+      let bodyDiv = this.$refs.bodyDiv;
+      if(bodyDiv.id != "bodyDiv"){
+        bodyDiv.id = "bodyDiv";
+      }
+      /*let kvmCanvas = this.$refs.kvmCanvas;
       if(kvmCanvas.id != "kvmCanvas"){
         kvmCanvas.id = "kvmCanvas";
         window.removeEventListener('keyup', this.ESCFun);
-      }
+      }*/
     },
     KVMClose(){
       if(this.rfb) this.rfb.disconnect();
@@ -265,47 +290,81 @@ export default {
       @include SplitLineAfter();
     }
 
-    #bodyDiv{
+    #bodyDivMax{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      //background: $bg-black;
+
       text-align: center;
-      #kvmCanvas{
-        width:100%;
-        vertical-align: middle;
-        background: $bg-black;
-        margin: auto;
+      #canvasDiv {
+
+        #kvmCanvas{
+          width:100%;
+          vertical-align: middle;
+          background: $bg-black;
+          margin: auto;
+        }
       }
 
-      #kvmCanvasMax{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: $bg-black;
-        z-index: 9998;
-      }
+      #controlDiv{
+        margin: 1em 0 0;
+        #hotkeyBtn{
+          float: left;
+          margin: 0 .5em;
+        }
+        #fullscreenBtn{
+          float: left;
+          margin: 0;
+        }
+        #testEsc{
+          float: left;
+        }
+        #closeBtn{
+          float: right;
+          margin: 0 .5em;
+        }
 
-      @include clearfix();
+        @include SplitLineBefore();
+        @include clearfix();
+      }
     }
 
-    #footerDiv{
-      #hotkeyBtn{
-        float: left;
-        margin: 0 .5em;
-      }
-      #fullscreenBtn{
-        float: left;
-        margin: 0;
-      }
-      #testEsc{
-        float: left;
-      }
-      #closeBtn{
-        float: right;
-        margin: 0 .5em;
+    #bodyDiv{
+      text-align: center;
+      #canvasDiv {
+
+        #kvmCanvas{
+          width:100%;
+          vertical-align: middle;
+          background: $bg-black;
+          margin: auto;
+        }
       }
 
-      @include SplitLineBefore();
-      @include clearfix();
+      #controlDiv{
+        margin: 1em 0 0;
+        #hotkeyBtn{
+          float: left;
+          margin: 0 .5em;
+        }
+        #fullscreenBtn{
+          float: left;
+          margin: 0;
+        }
+        #testEsc{
+          float: left;
+        }
+        #closeBtn{
+          float: right;
+          margin: 0 .5em;
+        }
+
+        @include SplitLineBefore();
+        @include clearfix();
+      }
     }
   }
 </style>
