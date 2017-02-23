@@ -307,6 +307,54 @@ export default function RFB(defaults) {
             return true;
         },
 
+        //dhl add E
+        sendAltTab: function () {
+            if (this._rfb_connection_state !== 'connected' || this._view_only) { return false; }
+            Util.Info("Sending Alt-Tab");
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Alt_L, 1);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Tab, 1);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Tab, 0);
+            return true;
+        },
+        
+        sendRelaseAlt: function () {
+            if (this._rfb_connection_state !== 'connected' || this._view_only) { return false; }
+            Util.Info("Sending Relase-Alt");
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Alt_L, 0);
+            return true;
+        },
+        
+        sendWinD: function () {
+            if (this._rfb_connection_state !== 'connected' || this._view_only) { return false; }
+            Util.Info("Sending Win-D");
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Alt_L, 0);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Super_L, 1);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_d, 1);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_d, 0);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Super_L, 0);
+            return true;
+        },
+        
+        sendWinL: function () {
+            if (this._rfb_connection_state !== 'connected' || this._view_only) { return false; }
+            Util.Info("Sending Win-L");
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Control_L, 1);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Alt_L, 1);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Delete, 1);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Delete, 0);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Alt_L, 0);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_Control_L, 0);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_KP_Enter, 1);
+            RFB.messages.keyEvent(this._sock, KeyTable.XK_KP_Enter, 0);
+            var rfb = this;
+            setTimeout(function(){
+                RFB.messages.keyEvent(rfb._sock, KeyTable.XK_KP_Enter, 1);
+                RFB.messages.keyEvent(rfb._sock, KeyTable.XK_KP_Enter, 0);
+            }, 2000);
+            return true;
+        },
+        //dhl add E
+
         xvpOp: function (ver, op) {
             if (this._rfb_xvp_ver < ver) { return false; }
             Util.Info("Sending XVP operation " + op + " (version " + ver + ")");

@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "element-ui": "^1.1.6",
-    "vue": "^2.1.0"
+    "vue": "^2.1.0",
+    "font-awesome": "^4.7.0"
   },
   "devDependencies": {
     "babel-core": "^6.0.0",
