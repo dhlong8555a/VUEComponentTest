@@ -3,7 +3,7 @@
       <h3 id="title" slot="header">{{title}}</h3>
 
       <div id="bodyDiv" slot="body" ref="bodyDiv">
-        <div id="canvasDiv">
+        <div id="canvasDiv" ref="canvasDiv">
           <canvas id="kvmCanvas" ref="kvmCanvas"></canvas>
         </div>
         <div id="controlDiv">
@@ -15,28 +15,16 @@
               <el-dropdown-item divided v-for="item in items" :command="item">{{item}}</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <el-button id="fullscreenBtn" slot="footer" type="primary" v-if="kvmConnected" @click="KVMCanvasExpand" >
-            <i class="fa fa-expand"  aria-hidden="true"></i>
-          </el-button>
+          <el-tooltip slot="footer" v-if="kvmConnected" id="fullscreenTt" class="item" effect="dark" :content="scaleTt" placement="top">
+            <el-button id="fullscreenBtn"  type="primary"  @click="KVMCanvasExpand" >
+              <i class="fa fa-expand"  ref="fullScreenI" aria-hidden="true"></i>
+            </el-button>
+          </el-tooltip>
           <el-button id="closeBtn" slot="footer" type="primary" @click="KVMClose">close</button>
         </div>
       </div>
       
       <div id="footerDiv" slot="footer"></div>
-      <!--<div id="footerDiv" slot="footer">
-        <el-dropdown id="hotkeyBtn" v-if="kvmConnected" @command="handleCommand">
-          <el-button type="primary">
-            HotKey<i class="el-icon-caret-bottom el-icon--right"></i>
-          </el-button>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item divided v-for="item in items" :command="item">{{item}}</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <el-button id="fullscreenBtn" slot="footer" type="primary" v-if="kvmConnected" @click="KVMCanvasExpand" >
-          <i class="fa fa-expand"  aria-hidden="true"></i>
-        </el-button>
-        <el-button id="closeBtn" slot="footer" type="primary" @click="KVMClose">close</button>
-      </div>-->
     </modal>
 </template>
 
@@ -50,13 +38,15 @@ export default {
   data() {
     return { 
       desktopName: "",
-      dWidth: 0,
-      dHeight: 0,
-      //items: ['Win+D', "Win+L", "Alt+Tab", "Ctrl+Alt+Del"],
-      items: ["Win+L", "Alt+Tab", "Ctrl+Alt+Del"],
+      items: ['Win+D', "Win+L", "Alt+Tab", "Ctrl+Alt+Del"],
       kvmConnectTimer: null,
       rbf:null,
       kvmConnected:false,
+      scaleTt:'Expend',
+      ctOldWidth: 0,
+      ctOldHeight: 0,
+      ctNewWidth: 0,
+      ctNewHeight: 0,
     }
   },
   props: {
@@ -153,18 +143,20 @@ export default {
     KVMUIresize(rfb) {
         let tmpW = this.$refs.kvmCanvas.parentNode.clientWidth;
         console.log(tmpW);
-        rfb.get_display().autoscale(this.dWidth, this.dHeight, true);
-        //kvmCanvas.style.width = this.dWidth;
-        //kvmCanvas.style.height = this.dHeight;
+        if(this.ctNewWidth != this.ctOldWidth || this.ctNewHeight != this.ctOldHeight){
+          rfb.get_display().autoscale(this.ctNewWidth, this.ctNewHeight, true);
+          this.ctOldWidth = this.ctNewWidth;
+          this.ctOldHeight = this.ctNewHeight;
+        }
     },
     KVMFBUComplete(rfb, fbu) {
       console.log("FBUComplete");
     },
     KVMFBUReceive(rfb, fbu) {
+      this.KVMUIresize(rfb);
       console.log("FBUReceive");
     },
     KVMFBResize(rfb, width, height) {
-      this.KVMUIresize(rfb);
       console.log("FBResize:"+width+height);
       
     },
@@ -199,8 +191,10 @@ export default {
     },
     KVMStartup(){
       let msg = "KVM Server startup...";
-      this.dHeight = this.$refs.kvmCanvas.clientHeight;
-      this.dWidth = this.$refs.kvmCanvas.clientWidth;
+      //this.ctNewHeight = this.$refs.kvmCanvas.clientHeight;
+      //this.ctNewWidth = this.$refs.kvmCanvas.clientWidth;
+      this.ctNewWidth = this.$refs.canvasDiv.clientWidth;
+      this.ctNewHeight = this.$refs.canvasDiv.clientHeight;
       this.KVMPrompt(msg);
       if(this.kvmConnectTimer) clearTimeout(this.kvmConnectTimer);
       this.kvmConnectTimer = setTimeout(this.KVMConnect, 3000);
@@ -223,17 +217,17 @@ export default {
     },
     KVMCanvasExpand(){
       let bodyDiv = this.$refs.bodyDiv;
-      if(bodyDiv.id != "bodyDivMax"){
-        bodyDiv.id = "bodyDivMax";
-      }
-      /*let kvmCanvas = this.$refs.kvmCanvas;
-      if(kvmCanvas.id != "kvmCanvasMax"){
-        kvmCanvas.id = "kvmCanvasMax";
-        window.addEventListener('keyup', this.ESCFun);
-      }*/
-      //kvmCanvas.style.width = window.innerWidth+'px';
-      //kvmCanvas.style.height = window.innerHeight+'px';
-      //this.rfb.get_display().autoscale(window.innerWidth, window.innerHeight, true);
+      if(bodyDiv.className.indexOf("bodyDivMax")>=0){
+        bodyDiv.className = "";
+        this.$refs.fullScreenI.className = "fa fa-expand";
+        this.scaleTt = "Expend";
+      }else{
+        bodyDiv.className ="bodyDivMax";
+        this.$refs.fullScreenI.className = "fa fa-compress";
+        this.scaleTt = "Compress";
+      }  
+      this.ctNewWidth = this.$refs.canvasDiv.clientWidth;
+      this.ctNewHeight = this.$refs.canvasDiv.clientHeight;
     },
     KVMCanvasCompress(){
       let bodyDiv = this.$refs.bodyDiv;
@@ -290,52 +284,25 @@ export default {
       @include SplitLineAfter();
     }
 
-    #bodyDivMax{
+    .bodyDivMax{
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      //background: $bg-black;
 
-      text-align: center;
-      #canvasDiv {
-
-        #kvmCanvas{
-          width:100%;
-          vertical-align: middle;
-          background: $bg-black;
-          margin: auto;
-        }
+      #canvasDiv{
+        height:90%;
       }
-
       #controlDiv{
-        margin: 1em 0 0;
-        #hotkeyBtn{
-          float: left;
-          margin: 0 .5em;
-        }
-        #fullscreenBtn{
-          float: left;
-          margin: 0;
-        }
-        #testEsc{
-          float: left;
-        }
-        #closeBtn{
-          float: right;
-          margin: 0 .5em;
-        }
-
-        @include SplitLineBefore();
-        @include clearfix();
+        height:10%;
       }
     }
 
     #bodyDiv{
       text-align: center;
-      #canvasDiv {
 
+      #canvasDiv {
         #kvmCanvas{
           width:100%;
           vertical-align: middle;
@@ -350,9 +317,10 @@ export default {
           float: left;
           margin: 0 .5em;
         }
-        #fullscreenBtn{
+        #fullscreenTt{
           float: left;
           margin: 0;
+          content: "Expend";
         }
         #testEsc{
           float: left;
