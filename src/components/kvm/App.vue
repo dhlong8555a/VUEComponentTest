@@ -1,7 +1,7 @@
 <template>
   <div id="app">
       <button id="show-modal" @click="showModal = true">Show Modal</button>
-      <otakvm v-if="showModal" @OTAKvmClose="showModal = false"></otakvm>
+      <otakvm :agentId="agentId" v-if="showModal" @OTAKvmClose="showModal = false"></otakvm>
     </div>
 </template>
 
@@ -14,6 +14,7 @@ export default {
   data() {
     return { 
       showModal: false,
+      agentId: "00004437E646AC6D",
     }
   }
 }

@@ -16,14 +16,13 @@
             </el-dropdown-menu>
           </el-dropdown>
           <el-tooltip slot="footer" v-if="kvmConnected" id="fullscreenTt" class="item" effect="dark" :content="scaleTt" placement="top">
-            <el-button id="fullscreenBtn"  type="primary"  @click="KVMCanvasExpand" >
+            <el-button id="fullscreenBtn"  type="primary"  v-if="false" @click="KVMCanvasScale" >
               <i class="fa fa-expand"  ref="fullScreenI" aria-hidden="true"></i>
             </el-button>
           </el-tooltip>
           <el-button id="closeBtn" slot="footer" type="primary" @click="KVMClose">close</button>
         </div>
-      </div>
-      
+      </div>      
       <div id="footerDiv" slot="footer"></div>
     </modal>
 </template>
@@ -39,14 +38,12 @@ export default {
     return { 
       desktopName: "",
       items: ['Win+D', "Win+L", "Alt+Tab", "Ctrl+Alt+Del"],
-      kvmConnectTimer: null,
       rbf:null,
+      kvmConnectTimeout:null,
       kvmConnected:false,
       scaleTt:'Expend',
-      ctOldWidth: 0,
-      ctOldHeight: 0,
-      ctNewWidth: 0,
-      ctNewHeight: 0,
+      cvsCtWidth:0,
+      cvsCtHeight:0,
     }
   },
   props: {
@@ -76,7 +73,7 @@ export default {
       let title = "KVM";
       if(this.titleSuffix) title = title +'-'+this.titleSuffix;
       return title;
-    }
+    },
   },
   methods: {
     handleCommand(command){
@@ -125,6 +122,7 @@ export default {
           break;
       case 'disconnected':
           console.log("Disconnected");
+          this.KVMPrompt("Disconnected");
           this.kvmConnected=false;
           break;
       default:
@@ -133,32 +131,21 @@ export default {
       }
     },
     KVMDisconnected(rfb, reason) {
-      let msg = "Disconnecting";
+      this.kvmConnected=false;
+      let msg = "Disconnected";
       if (typeof(reason) !== 'undefined') {
         msg = msg + ":" +reason;
         console.log("Disconnected:"+reason);
       }
       this.KVMPrompt(msg);
     },
-    KVMUIresize(rfb) {
-        let tmpW = this.$refs.kvmCanvas.parentNode.clientWidth;
-        console.log(tmpW);
-        if(this.ctNewWidth != this.ctOldWidth || this.ctNewHeight != this.ctOldHeight){
-          rfb.get_display().autoscale(this.ctNewWidth, this.ctNewHeight, true);
-          this.ctOldWidth = this.ctNewWidth;
-          this.ctOldHeight = this.ctNewHeight;
-        }
-    },
     KVMFBUComplete(rfb, fbu) {
       console.log("FBUComplete");
-    },
-    KVMFBUReceive(rfb, fbu) {
-      this.KVMUIresize(rfb);
-      console.log("FBUReceive");
+      this.rfb.get_display().autoscale(this.cvsCtWidth, this.cvsCtHeight, true);
+      rfb.set_onFBUComplete(function() { });
     },
     KVMFBResize(rfb, width, height) {
       console.log("FBResize:"+width+height);
-      
     },
     KVMUpdateDesktopName(rfb, name) {
       this.desktopName = name;
@@ -176,7 +163,6 @@ export default {
           'onNotification':  this.KVMNotification,
           'onUpdateState':  this.KVMUpdateState,
           'onDisconnected': this.KVMDisconnected,
-          'onFBUReceive': this.KVMFBUReceive,
           'onFBUComplete': this.KVMFBUComplete,
           'onFBResize': this.KVMFBResize,
           'onDesktopName': this.KVMUpdateDesktopName
@@ -190,18 +176,13 @@ export default {
       this.rfb.connect(this.host, this.port, this.pwd, "websockify");
     },
     KVMStartup(){
-      let msg = "KVM Server startup...";
-      //this.ctNewHeight = this.$refs.kvmCanvas.clientHeight;
-      //this.ctNewWidth = this.$refs.kvmCanvas.clientWidth;
-      this.ctNewWidth = this.$refs.canvasDiv.clientWidth;
-      this.ctNewHeight = this.$refs.canvasDiv.clientHeight;
-      this.KVMPrompt(msg);
-      if(this.kvmConnectTimer) clearTimeout(this.kvmConnectTimer);
-      this.kvmConnectTimer = setTimeout(this.KVMConnect, 3000);
+      this.KVMConnect();
     },
     KVMPrompt(msg){
       if(this.$refs.kvmCanvas){
         let kvmCanvas = this.$refs.kvmCanvas;
+        kvmCanvas.width = this.cvsCtWidth ;
+        kvmCanvas.height = this.cvsCtHeight;
         let ctx = kvmCanvas.getContext("2d");
         ctx.clearRect(0, 0, kvmCanvas.width, kvmCanvas.height);
         ctx.textAlign="center";
@@ -210,44 +191,47 @@ export default {
         ctx.fillText(msg, kvmCanvas.width/2, kvmCanvas.height/2);
       }
     },
-    ESCFun(key){
-      if(key.keyCode == 27){
-        this.KVMCanvasCompress();
-      }
+    KVMUIresize() {
+      this.cvsCtWidth = this.$refs.canvasDiv.clientWidth;
+      this.cvsCtHeight = this.$refs.canvasDiv.clientHeight;
+      if(this.rfb) 
+      {
+        console.log("width:"+this.cvsCtWidth+",height:"+this.cvsCtHeight);
+        this.rfb.get_display().autoscale(this.cvsCtWidth, this.cvsCtHeight, true);
+      };
     },
-    KVMCanvasExpand(){
+    KVMCanvasScale(){
       let bodyDiv = this.$refs.bodyDiv;
       if(bodyDiv.className.indexOf("bodyDivMax")>=0){
         bodyDiv.className = "";
         this.$refs.fullScreenI.className = "fa fa-expand";
         this.scaleTt = "Expend";
+        this.rfb.get_display().autoscale(this.cvsCtWidth, this.cvsCtHeight, true);
       }else{
         bodyDiv.className ="bodyDivMax";
         this.$refs.fullScreenI.className = "fa fa-compress";
         this.scaleTt = "Compress";
-      }  
-      this.ctNewWidth = this.$refs.canvasDiv.clientWidth;
-      this.ctNewHeight = this.$refs.canvasDiv.clientHeight;
-    },
-    KVMCanvasCompress(){
-      let bodyDiv = this.$refs.bodyDiv;
-      if(bodyDiv.id != "bodyDiv"){
-        bodyDiv.id = "bodyDiv";
+        this.KVMUIresize();
       }
-      /*let kvmCanvas = this.$refs.kvmCanvas;
-      if(kvmCanvas.id != "kvmCanvas"){
-        kvmCanvas.id = "kvmCanvas";
-        window.removeEventListener('keyup', this.ESCFun);
-      }*/
     },
     KVMClose(){
+      window.removeEventListener('resize', this.KVMUIresize);
       if(this.rfb) this.rfb.disconnect();
       this.$emit("KVMClose");
     }
   },
   mounted: function(){
-    window.addEventListener('keyup', this.ESCFun);
-    this.KVMStartup();
+    this.cvsCtWidth = this.$refs.canvasDiv.clientWidth;
+    this.cvsCtHeight = this.$refs.canvasDiv.clientHeight;
+    window.addEventListener('resize', this.KVMUIresize);
+    let msg = "KVM Server startup...";
+    this.KVMPrompt(msg);
+  },
+  watch:{
+    pwd:function(val, oldVal){
+      if(this.kvmConnectTimeout) clearTimeout(this.kvmConnectTimeout);
+      this.kvmConnectTimeout = setTimeout(this.KVMStartup, 5000);
+    }
   }
 }
 </script>
@@ -285,14 +269,21 @@ export default {
     }
 
     .bodyDivMax{
-      position: fixed;
+      position:fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
+      min-width: 600px;
+      min-width: 400px;
 
       #canvasDiv{
         height:90%;
+        display: flex;
+        #kvmCnavas{
+          justify-content: center;
+          align-content: center;
+        }
       }
       #controlDiv{
         height:10%;
@@ -300,12 +291,10 @@ export default {
     }
 
     #bodyDiv{
-      text-align: center;
-
-      #canvasDiv {
+      #canvasDiv { 
+        text-align: center;    
         #kvmCanvas{
           width:100%;
-          vertical-align: middle;
           background: $bg-black;
           margin: auto;
         }

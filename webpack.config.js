@@ -60,6 +60,11 @@ module.exports = {
   performance: {
     hints: false
   },
+  plugins:[
+    new webpack.DefinePlugin({
+      'OTA_VERSION':JSON.stringify('3.0')
+    })
+  ],
   devtool: '#eval-source-map'
 }
 
