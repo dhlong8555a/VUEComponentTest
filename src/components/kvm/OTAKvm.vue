@@ -1,5 +1,5 @@
 <template>
-    <kvm :host="host" :port="port" :pwd="pwd" :titleSuffix="titleSuffix" @KVMClose="OTAKvmClose"></kvm>
+    <kvm :host="host" :port="port" :pwd="pwd" :titleSuffix="titleSuffix" @kvmClose="OTAKvmClose"></kvm>
 </template>
 
 <script>
