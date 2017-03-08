@@ -1,8 +1,8 @@
 <template>
-  <div id="app">
+  <div id="vue-app">
       <button id="show-modal" @click="showModal = true">Show Modal</button>
       <otakvm :agentId="agentId" v-if="showModal" @OTAKvmClose="showModal = false"></otakvm>
-    </div>
+  </div>
 </template>
 
 <script>

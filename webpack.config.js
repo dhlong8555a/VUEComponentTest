@@ -36,7 +36,7 @@ module.exports = {
         loader: 'style-loader!css-loader'
       },
       {
-        test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
+        test: /\.(eot|ttf|woff|woff2)(\?\S*)?$/,
         loader: 'file-loader'
       },
       {
@@ -45,6 +45,10 @@ module.exports = {
         options: {
           name: '[name].[ext]?[hash]'
         }
+      },
+      {
+        test: /\.svg(\?v=\d+\.\d+\.\d+|#\w)$/,
+        loader: "url-loader?limit=10000&mimetype=image/svg+xml"
       }
     ]
   },
@@ -55,7 +59,7 @@ module.exports = {
   },
   devServer: {
     historyApiFallback: true,
-    noInfo: true
+    noInfo: false
   },
   performance: {
     hints: false

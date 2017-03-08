@@ -10,5 +10,9 @@ Vue.use(Tooltip)
 
 new Vue({
   el: '#app',
-  render: x=> x(TestHelperComp)
+  /*components:{
+    TestHelperComp
+  },
+  template: '<TestHelperComp></TestHelperComp>',*/
+  render: h=> h(TestHelperComp)
 })

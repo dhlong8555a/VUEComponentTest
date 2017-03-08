@@ -5,7 +5,7 @@
   "author": "1",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
+    "dev": "cross-env NODE_ENV=development webpack-dev-server --open --inline --hot",
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
   },
   "dependencies": {
@@ -27,6 +27,7 @@
     "sass-loader": "^5.0.1",
     "style-loader": "0.13.1",
     "vue-loader": "^10.0.0",
+    "url-loader": "^0.5.8",
     "vue-template-compiler": "^2.1.0",
     "webpack": "^2.2.0",
     "webpack-dev-server": "^2.2.0"
