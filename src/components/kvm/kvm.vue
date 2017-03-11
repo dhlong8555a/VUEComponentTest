@@ -1,6 +1,6 @@
 <template>
   <transition name="modal">
-    <div class="modal-mask">
+    <div class="modal-mask" ref="kvmFloor">
       <!-- kvm Control Bar -->
       <div id="kvm_control_bar_anchor" class="kvm_vcenter" ref="kvmCtrlBarAnchor">
         <div id="kvm_control_bar" ref="kvmCtrlBar">
@@ -36,6 +36,8 @@
       </div>
       <!-- End of kvm_control_bar -->
 
+      <div id="kvm_title" ref="kvmTitle">{{title}}</div>
+
       <!-- Transition Screens -->
       <div id="kvm_transition" v-show="promptShow" ref="kvmPrompt">
         <div id="kvm_transition_text" ref="kvmPromptText"></div>
@@ -68,10 +70,12 @@
         kvmConnected: false,
         idleControlbarTimeout: null,
         closeControlbarTimeout: null,
+        titleHoverTimeout:null,
         controlbarGrabbed: false,
         controlbarDrag: false,
         promptShow: false,
         fullscreenShow: false,
+        tilteShowed:false,
       }
     },
     props: {
@@ -418,11 +422,36 @@
         } else {
           this.$emit("kvmClose");
         }
+      },
+      titleHover(e){
+        //let x = e.clientX;
+        let y = e.clientY;
+        //console.log("position:"+e.clientX+";"+e.clientY);
+        let kvmTitle = this.$refs.kvmTitle;
+        if(kvmTitle){
+          if(y<=30 && !this.titleShowed){
+            kvmTitle.classList.add('kvm_open');
+            this.titleShowed = true;
+          } else if(y>30 && this.titleShowed){
+            clearTimeout(this.titleHoverTimeout);
+            this.titleHoverTimeout = setTimeout(()=>{
+              kvmTitle.classList.remove('kvm_open');
+              this.titleShowed = false;
+            },3000);
+          }
+        }
+      },
+      addTitleHandlers(){
+        let kvmFloor = this.$refs.kvmFloor;
+        if(kvmFloor){
+          kvmFloor.addEventListener('mousemove', this.titleHover);
+        }
       }
     },
     mounted: function () {
       this.initFullscreen();
       this.addResizeHandlers();
+      this.addTitleHandlers();
       this.openControlbar();
       this.delayCloseControlBar();
       this.addControlbarhandlers();
@@ -628,6 +657,48 @@
       visibility: visible;
       opacity: 1;
       transform: translateX(75px);
+    }
+    /*Title*/
+    #kvm_title{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      transform: translateY(-100%);
+
+      cursor: pointer;
+
+      transition: 0.5s ease-in-out;
+
+      visibility: hidden;
+      opacity: 0;
+
+      padding: 5px;
+
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-content: center;
+
+      line-height: 25px;
+      word-wrap: break-word;
+      color: #fff;
+
+      border-bottom: 1px solid rgba(0, 0, 0, 0.9);
+    }
+    #kvm_title.kvm_open {
+      transform: translateY(0);
+      visibility: visible;
+      opacity: 1;
+    }
+
+    #kvm_title::before {
+      content: "";
+      display: inline-block;
+      width: 25px;
+      height: 25px;
+      margin-right: 5px;
     }
     /* Transition screen*/
     #kvm_transition {
